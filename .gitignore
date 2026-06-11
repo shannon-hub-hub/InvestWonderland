@@ -14,9 +14,14 @@ __pycache__/
 # Selenium / browser downloads
 Downloads/
 
-# SQLite DB
-*.db
-
 # OS-specific
 .DS_Store
+
+# Virtualenv / lock tooling
+.venv/
+
+# Next.js
+web/node_modules/
+web/.next/
+web/out/
 

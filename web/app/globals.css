@@ -1,0 +1,156 @@
+:root {
+  /* Official Invest Wonderland palette */
+  --brown: #503d2d;
+  --teal: #1f9295;
+  --cream: #f0ecc9;
+  --mustard: #e3ad43;
+  --orange: #d44c1a;
+
+  --bg-desktop: var(--brown);
+  --bg-window: var(--cream);
+  --bg-panel: #faf6e4;
+  --bg-sidebar: #e8e4c4;
+  --border: var(--brown);
+  --border-soft: #8a6b52;
+  --text: var(--brown);
+  --text-muted: #6b5340;
+  --text-on-teal: var(--cream);
+  --accent: var(--teal);
+  --accent-soft: #c5e8e9;
+  --highlight: var(--mustard);
+  --cta: var(--orange);
+
+  --shadow-outset: 4px 4px 0 var(--brown);
+  --shadow-inset: inset 3px 3px 0 rgba(80, 61, 45, 0.2);
+  --radius-window: 2px;
+  --radius-panel: 2px;
+  --font-display: 'Courier New', Courier, 'Lucida Console', monospace;
+  --font-ui: Geneva, Tahoma, 'MS Sans Serif', system-ui, sans-serif;
+  --font-mono: 'Courier New', Courier, monospace;
+  --quilt-size: 52px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+}
+
+/* Retro diamond quilt desktop (reference palette) */
+body {
+  background-color: var(--brown);
+  background-image:
+    linear-gradient(
+      45deg,
+      var(--teal) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--teal) 75%
+    ),
+    linear-gradient(
+      45deg,
+      var(--teal) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--teal) 75%
+    ),
+    linear-gradient(
+      -45deg,
+      var(--mustard) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--mustard) 75%
+    ),
+    linear-gradient(
+      -45deg,
+      var(--mustard) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--mustard) 75%
+    ),
+    linear-gradient(45deg, var(--cream) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--orange) 25%, transparent 25%);
+  background-size: var(--quilt-size) var(--quilt-size);
+  background-position:
+    0 0,
+    calc(var(--quilt-size) / 2) calc(var(--quilt-size) / 2),
+    0 0,
+    calc(var(--quilt-size) / 2) calc(var(--quilt-size) / 2),
+    calc(var(--quilt-size) / 4) calc(var(--quilt-size) / 4),
+    calc(var(--quilt-size) / 2) 0;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+a {
+  color: var(--teal);
+  font-weight: 600;
+}
+
+a:hover {
+  color: var(--orange);
+}
+
+::selection {
+  background: var(--mustard);
+  color: var(--brown);
+}
+
+/* Hatch textures (retro print look) */
+.hatch-teal {
+  background-color: var(--teal);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 3px,
+    rgba(240, 236, 201, 0.4) 3px,
+    rgba(240, 236, 201, 0.4) 5px
+  );
+}
+
+.hatch-mustard {
+  background-color: var(--mustard);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 3px,
+    rgba(80, 61, 45, 0.12) 3px,
+    rgba(80, 61, 45, 0.12) 5px
+  );
+}
+
+.hatch-orange {
+  background-color: var(--orange);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 3px,
+    rgba(240, 236, 201, 0.25) 3px,
+    rgba(240, 236, 201, 0.25) 5px
+  );
+}
+
+.retro-diamond-panel {
+  background: var(--cream);
+  border: 3px solid var(--brown);
+  box-shadow: var(--shadow-outset);
+  position: relative;
+}
+
+.retro-diamond-panel::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 2px dashed var(--border-soft);
+  pointer-events: none;
+}

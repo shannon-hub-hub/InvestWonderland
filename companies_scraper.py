@@ -2,18 +2,15 @@ import time
 import csv
 import os
 import random
-from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 
 def init_driver():
-    options = webdriver.ChromeOptions()
-    options.add_argument('--start-maximized')
-    options.add_argument('user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-    driver = webdriver.Chrome(options=options)
-    return driver
+    from app.etl.browser import init_driver as _init
+
+    return _init()
 
 #Extract
 def scroll_and_load_all(driver, max_scrolls=50):
@@ -63,7 +60,7 @@ def scroll_and_load_all(driver, max_scrolls=50):
     print(f"✓ Finished loading. Total companies visible: {cards_count}\n")
     return cards_count
 
-def scrape_investors(driver, url):
+def scrape_investors(driver, url, limit: int | None = None):
     results = []
     
     print(f"\n{'='*60}")
@@ -172,11 +169,14 @@ def scrape_investors(driver, url):
                 'website': company_url,
                 'logo_url': logo_url
             })
-            
-            if (valid_cards + 1) % 10 == 0:
-                print(f"✓ Processed {valid_cards + 1} companies...")
-            
+
             valid_cards += 1
+
+            if limit is not None and valid_cards >= limit:
+                break
+
+            if valid_cards % 10 == 0:
+                print(f"✓ Processed {valid_cards} companies...")
             
         except Exception as e:
             # Print errors to help debug
@@ -184,6 +184,8 @@ def scrape_investors(driver, url):
             continue
     
     print(f"\n✅ Successfully scraped {valid_cards} companies!")
+    if limit is not None:
+        return results[:limit]
     return results
 
 #Load data and save to CSV
@@ -214,6 +216,18 @@ def save_csv(data, filename="startups_gallery.csv"):
     
     print(f"\n✅ SUCCESS! Saved {len(data)} companies to: {filepath}")
 
+
+def save_to_db(data):
+    if not data:
+        return
+    from app.db.session import SessionLocal
+    from app.services.loader import upsert_startups
+
+    with SessionLocal() as session:
+        count = upsert_startups(session, data)
+    print(f"✅ Saved {count} startups to PostgreSQL")
+
+
 def main():
     driver = init_driver()
     data = []
@@ -230,6 +244,7 @@ def main():
         
         if data:
             save_csv(data)
+            save_to_db(data)
             print("\n" + "="*80)
             print(f"🎉 COMPLETE! Scraped {len(data)} companies successfully!")
             print("="*80)
@@ -245,6 +260,7 @@ def main():
         if data:
             print(f"Saving {len(data)} companies collected so far...")
             save_csv(data)
+            save_to_db(data)
     except Exception as e:
         print(f"Error: {e}")
         import traceback
@@ -252,6 +268,7 @@ def main():
         if data:
             print(f"Saving {len(data)} companies collected before error...")
             save_csv(data)
+            save_to_db(data)
     finally:
         driver.quit()
         print("Browser closed.")

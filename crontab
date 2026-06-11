@@ -1,0 +1,2 @@
+# Daily longitudinal ingest — 06:00 UTC (investors then startups via --source all)
+0 6 * * * /app/scripts/cron/run_ingest.sh

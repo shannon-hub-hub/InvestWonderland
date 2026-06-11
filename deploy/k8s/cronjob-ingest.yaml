@@ -1,0 +1,49 @@
+# Daily longitudinal ingest at 06:00 UTC.
+# Apply after building/pushing the API image and creating the database secret.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scraper-ingest-daily
+  labels:
+    app: invest-wonderland
+    component: ingest
+spec:
+  schedule: "0 6 * * *"
+  timeZone: UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: invest-wonderland
+            component: ingest
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: ingest
+              image: invest-wonderland-api:latest
+              imagePullPolicy: IfNotPresent
+              command: ["python", "scripts/run_ingestion.py", "--source", "all"]
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: scraper-secrets
+                      key: database-url
+                - name: HEADLESS
+                  value: "true"
+                - name: CHROME_BIN
+                  value: /usr/bin/chromium
+                - name: CHROMEDRIVER_PATH
+                  value: /usr/bin/chromedriver
+              resources:
+                requests:
+                  memory: "1Gi"
+                  cpu: "500m"
+                limits:
+                  memory: "2Gi"
+                  cpu: "2000m"

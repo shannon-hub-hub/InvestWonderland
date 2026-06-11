@@ -2,25 +2,26 @@ import time
 import csv
 import os
 import random
-from selenium import webdriver
+import os
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 def init_driver():
-    options = webdriver.ChromeOptions()
-    options.add_argument('--start-maximized')
-    # Add user agent to look more like a real browser
-    options.add_argument('user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-    driver = webdriver.Chrome(options=options)
-    return driver
+    from app.etl.browser import init_driver as _init
 
-def scrape_investors(driver):
+    return _init()
+
+
+def scrape_investors(driver, max_pages: int | None = None, limit: int | None = None):
     results = []
     page_num = 1
-    max_pages = 50  # Adjust this to scrape more/fewer pages
-    
+    max_pages = max_pages or int(os.getenv("INGEST_MAX_PAGES", "50"))
+
     while page_num <= max_pages:
+        if limit is not None and len(results) >= limit:
+            break
         # Load page directly via URL
         url = f"https://www.openvc.app/search?page={page_num}"
         print(f"\n{'='*60}")
@@ -121,7 +122,10 @@ def scrape_investors(driver):
                     'website': website,
                     'logo_url': logo_url
                 })
-                
+
+                if limit is not None and len(results) >= limit:
+                    break
+
                 print(f"✓ Row {i}: {investor_name}")
                 valid_rows += 1
                 
@@ -138,7 +142,9 @@ def scrape_investors(driver):
         
         # Move to next page
         page_num += 1
-    
+
+    if limit is not None:
+        return results[:limit]
     return results
 
 def save_csv(data, filename="openvc_investors.csv"):
@@ -180,6 +186,18 @@ def save_csv(data, filename="openvc_investors.csv"):
     
     print(f"\n✅ SUCCESS! Saved {len(data)} investors to: {filepath}")
 
+
+def save_to_db(data):
+    if not data:
+        return
+    from app.db.session import SessionLocal
+    from app.services.loader import upsert_investors
+
+    with SessionLocal() as session:
+        count = upsert_investors(session, data)
+    print(f"✅ Saved {count} investors to PostgreSQL")
+
+
 def main():
     driver = init_driver()
     data = []
@@ -190,6 +208,7 @@ def main():
         
         data = scrape_investors(driver)
         save_csv(data)
+        save_to_db(data)
         
         print("\n" + "="*80)
         print(f"🎉 COMPLETE! Scraped {len(data)} investors successfully!")
@@ -202,11 +221,13 @@ def main():
         if data:
             print(f"Saving {len(data)} investors collected so far...")
             save_csv(data)
+            save_to_db(data)
     except Exception as e:
         print(f"Error: {e}")
         if data:
             print(f"Saving {len(data)} investors collected before error...")
             save_csv(data)
+            save_to_db(data)
     finally:
         driver.quit()
         print("Browser closed.")
