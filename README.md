@@ -1,7 +1,7 @@
 <h1 align="center">VC Intelligence Pipeline</h1>
 
 <p align="center">
-A full-stack web application that collects investor and startup data from public directories, normalizes it into a relational database, and surfaces funding-flow analytics through a REST API and browser-based interface.
+A full-stack web application that collects investor and startup data from public directories, normalizes it into a relational database, and surfaces investor focus analytics through a REST API and browser-based interface.
 </p>
 
 ---
